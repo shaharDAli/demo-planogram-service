@@ -13,12 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.demo.planogramservice.events.consumer.AuditPingEventConsumer;
 import com.demo.planogramservice.events.consumer.FraudEventConsumer;
 import com.demo.planogramservice.events.consumer.NotificationPingEventConsumer;
+import com.demo.planogramservice.events.consumer.OrderDltConsumer;
+import com.demo.planogramservice.events.consumer.OrderEventConsumer;
 import com.demo.planogramservice.events.consumer.PingEventConsumer;
 import com.demo.planogramservice.events.domain.KafkaEventLogsRepository;
 import com.demo.planogramservice.events.dto.KafkaPullResultDto;
+import com.demo.planogramservice.events.dto.TopicMessagesResponse;
 import com.demo.planogramservice.events.service.KafkaEventPullService;
+import com.demo.planogramservice.events.service.KafkaTopicPayloadService;
 import com.demo.shared.events.dto.PingEvent;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Kafka Messaging & Audit Logs", description = "Kafka Consumer Group Telemetry, Event Logs, and Broker Record Sync APIs")
@@ -30,22 +36,31 @@ public class KafkaTestController {
     private final AuditPingEventConsumer auditPingEventConsumer;
     private final NotificationPingEventConsumer notificationPingEventConsumer;
     private final FraudEventConsumer fraudEventConsumer;
+    private final OrderEventConsumer orderEventConsumer;
+    private final OrderDltConsumer orderDltConsumer;
     private final KafkaEventLogsRepository kafkaEventLogsRepository;
     private final KafkaEventPullService kafkaEventPullService;
+    private final KafkaTopicPayloadService kafkaTopicPayloadService;
 
     public KafkaTestController(
             PingEventConsumer pingEventConsumer,
             AuditPingEventConsumer auditPingEventConsumer,
             NotificationPingEventConsumer notificationPingEventConsumer,
             FraudEventConsumer fraudEventConsumer,
+            OrderEventConsumer orderEventConsumer,
+            OrderDltConsumer orderDltConsumer,
             KafkaEventLogsRepository kafkaEventLogsRepository,
-            KafkaEventPullService kafkaEventPullService) {
+            KafkaEventPullService kafkaEventPullService,
+            KafkaTopicPayloadService kafkaTopicPayloadService) {
         this.pingEventConsumer = pingEventConsumer;
         this.auditPingEventConsumer = auditPingEventConsumer;
         this.notificationPingEventConsumer = notificationPingEventConsumer;
         this.fraudEventConsumer = fraudEventConsumer;
+        this.orderEventConsumer = orderEventConsumer;
+        this.orderDltConsumer = orderDltConsumer;
         this.kafkaEventLogsRepository = kafkaEventLogsRepository;
         this.kafkaEventPullService = kafkaEventPullService;
+        this.kafkaTopicPayloadService = kafkaTopicPayloadService;
     }
 
 
@@ -149,6 +164,38 @@ public class KafkaTestController {
     @GetMapping("/fraud/status")
     public ResponseEntity<?> getFraudStatus() {
         return ResponseEntity.ok(fraudEventConsumer.getFraudStatus());
+    }
+
+    /**
+     * Fetch all payloads added in a Kafka topic with request param 'topic'.
+     * Dynamically deserializes Avro (Schema Registry), Long (Kafka Streams count), JSON, or Strings.
+     */
+    @Operation(summary = "Fetch all payloads from a Kafka topic", description = "Reads all messages starting from offset 0 across all partitions for the given topic and returns their decoded payloads.")
+    @GetMapping(value = {"/payloads", "/topic/payloads"})
+    public ResponseEntity<TopicMessagesResponse> getTopicPayloads(
+            @Parameter(description = "Kafka topic name (e.g. account-count-topic, transaction-events, demo-ping-topic)", required = true)
+            @RequestParam(name = "topic") String topic,
+            @Parameter(description = "Maximum number of messages to return (default 500, max 5000)")
+            @RequestParam(name = "limit", required = false, defaultValue = "500") Integer limit) {
+        return ResponseEntity.ok(kafkaTopicPayloadService.fetchTopicPayloads(topic, limit));
+    }
+
+    /**
+     * Order Event Consumer telemetry, processing metrics, and retry recovery history
+     */
+    @Operation(summary = "Inspect Order Event Consumer telemetry and retry metrics")
+    @GetMapping("/order/status")
+    public ResponseEntity<?> getOrderStatus() {
+        return ResponseEntity.ok(orderEventConsumer.getOrderStatus());
+    }
+
+    /**
+     * Inspect Dead Letter Topic (DLT) received events and exception headers
+     */
+    @Operation(summary = "Inspect Dead Letter Topic (order-events.DLT) telemetry and failed events")
+    @GetMapping("/order/dlt")
+    public ResponseEntity<?> getOrderDltStatus() {
+        return ResponseEntity.ok(orderDltConsumer.getDltStatus());
     }
 }
 

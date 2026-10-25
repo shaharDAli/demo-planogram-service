@@ -11,6 +11,9 @@ public class KafkaTopicConfig {
     public static final String PING_TOPIC = "demo-ping-topic";
     public static final String TRANSACTION_TOPIC = "transaction-events";
     public static final String FRAUD_DETECTION_TOPIC = "fraud-detection-topic";
+    public static final String ACCOUNT_COUNT_TOPIC = "account-count-topic";
+    public static final String ORDER_TOPIC = "order-events";
+    public static final String ORDER_DLT_TOPIC = "order-events.DLT";
 
     @Bean
     public NewTopic transactionTopic() {
@@ -28,9 +31,6 @@ public class KafkaTopicConfig {
                 .build();
     }
 
-    // New Topic For Account per count
-    public static final String ACCOUNT_COUNT_TOPIC = "account-count-topic";
-
     @Bean
     public NewTopic accountCountTopic() {
         return TopicBuilder.name(ACCOUNT_COUNT_TOPIC)
@@ -39,4 +39,19 @@ public class KafkaTopicConfig {
                 .build();
     }
 
+    @Bean
+    public NewTopic orderTopic() {
+        return TopicBuilder.name(ORDER_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic orderDltTopic() {
+        return TopicBuilder.name(ORDER_DLT_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
 }

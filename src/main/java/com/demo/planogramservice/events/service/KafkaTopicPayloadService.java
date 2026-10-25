@@ -47,7 +47,7 @@ public class KafkaTopicPayloadService {
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    @Value("${spring.kafka.consumer.properties.schema.registry.url:${spring.kafka.producer.properties.schema.registry.url:http://localhost:8081}}")
+    @Value("${spring.kafka.consumer.properties.schema.registry.url:http://localhost:8081}")
     private String schemaRegistryUrl;
 
     private final ObjectMapper objectMapper;

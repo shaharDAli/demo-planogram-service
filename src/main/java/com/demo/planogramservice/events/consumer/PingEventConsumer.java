@@ -16,6 +16,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
+import com.demo.planogramservice.events.config.KafkaTopicConfig;
 import com.demo.planogramservice.events.domain.KafkaEventLogs;
 import com.demo.planogramservice.events.domain.KafkaEventLogsRepository;
 import com.demo.shared.events.dto.PingEvent;
@@ -70,7 +71,7 @@ public class PingEventConsumer {
     /**
      * Consumer Instance 1 (Worker 1 in planogram-service-group)
      */
-    @KafkaListener(id = "planogram-consumer-worker-1", topics = "demo-ping-topic", groupId = GROUP_ID, clientIdPrefix = "planogram-worker-1")
+    @KafkaListener(id = "planogram-consumer-worker-1", topics = KafkaTopicConfig.PING_TOPIC, groupId = GROUP_ID, clientIdPrefix = "planogram-worker-1")
     public void consumeWorker1(ConsumerRecord<String, Object> record, Acknowledgment acknowledgment) {
         worker1Count.incrementAndGet();
         worker1Partitions.add(record.partition());
@@ -80,7 +81,7 @@ public class PingEventConsumer {
     /**
      * Consumer Instance 2 (Worker 2 in planogram-service-group)
      */
-    @KafkaListener(id = "planogram-consumer-worker-2", topics = "demo-ping-topic", groupId = GROUP_ID, clientIdPrefix = "planogram-worker-2")
+    @KafkaListener(id = "planogram-consumer-worker-2", topics = KafkaTopicConfig.PING_TOPIC, groupId = GROUP_ID, clientIdPrefix = "planogram-worker-2")
     public void consumeWorker2(ConsumerRecord<String, Object> record, Acknowledgment acknowledgment) {
         worker2Count.incrementAndGet();
         worker2Partitions.add(record.partition());
@@ -90,7 +91,7 @@ public class PingEventConsumer {
     /**
      * Consumer Instance 3 (Worker 3 in planogram-service-group)
      */
-    @KafkaListener(id = "planogram-consumer-worker-3", topics = "demo-ping-topic", groupId = GROUP_ID, clientIdPrefix = "planogram-worker-3")
+    @KafkaListener(id = "planogram-consumer-worker-3", topics = KafkaTopicConfig.PING_TOPIC, groupId = GROUP_ID, clientIdPrefix = "planogram-worker-3")
     public void consumeWorker3(ConsumerRecord<String, Object> record, Acknowledgment acknowledgment) {
         worker3Count.incrementAndGet();
         worker3Partitions.add(record.partition());

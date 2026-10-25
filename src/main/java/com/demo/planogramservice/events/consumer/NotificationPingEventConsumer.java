@@ -14,6 +14,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
+import com.demo.planogramservice.events.config.KafkaTopicConfig;
 import com.demo.planogramservice.events.domain.KafkaEventLogs;
 import com.demo.planogramservice.events.domain.KafkaEventLogsRepository;
 import com.demo.shared.events.dto.PingEvent;
@@ -47,7 +48,7 @@ public class NotificationPingEventConsumer {
     private final AtomicLong lastOffset = new AtomicLong(-1);
     private final AtomicReference<String> lastReceivedAt = new AtomicReference<>();
 
-    @KafkaListener(topics = "demo-ping-topic", groupId = GROUP_ID)
+    @KafkaListener(topics = KafkaTopicConfig.PING_TOPIC, groupId = GROUP_ID)
     public void consume(ConsumerRecord<String, Object> record, Acknowledgment acknowledgment) {
         Object value = record.value();
         int partition = record.partition();
